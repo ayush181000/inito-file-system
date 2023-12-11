@@ -37,16 +37,22 @@ To get started with the File System App, follow these steps:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/ayush181000/.git
+   git clone https://github.com/ayush181000/inito-file-system
    ```
 
-2. Install dependencies:
+2. Change directory
+
+   ```bash
+   cd inito-file-system
+   ```
+
+3. Install dependencies:
 
    ```bash
    npm install
    ```
 
-3. Run the app:
+4. Run the app:
 
    ```bash
    npm start
