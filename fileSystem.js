@@ -295,15 +295,20 @@ module.exports = class FileSystem {
     }
 
     grep(pattern, path) {
-        const target = this.findItem(path);
+        try {
+            const target = this.findItem(path);
 
-        if (target && target.type === "file") {
-            const lines = target.content.split("\n");
-            const matchingLines = lines.filter((line) => line.includes(pattern));
-            matchingLines.forEach((line) => console.log(line));
-        } else {
+            if (target && target.type === "file") {
+                const lines = target.content.split("\n");
+                const matchingLines = lines.filter((line) => line.includes(pattern));
+                matchingLines.forEach((line) => console.log(line));
+            } else {
+                console.log("Invalid file path");
+            }
+        } catch (err) {
             console.log("Invalid file path");
         }
+
     }
 }
 
