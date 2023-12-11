@@ -210,74 +210,87 @@ module.exports = class FileSystem {
     }
 
     echo(content, path) {
-        const target = this.findItem(path);
+        try {
+            const target = this.findItem(path);
 
-        if (target && target.type === "file") {
-            target.content = content + '\n'; // Overwrite the existing content
-        } else {
-            const components = this.getPathComponents(path);
-            const filename = components.pop();
-            const directoryPath = components.join('/');
-
-            const directory = this.findItem(directoryPath);
-
-            if (directory && directory.type === "directory") {
-                directory.contents[filename] = this.createFile(filename, content + '\n');
+            if (target && target.type === "file") {
+                target.content = content + '\n'; // Overwrite the existing content
             } else {
-                console.log("Invalid file path");
+                const components = this.getPathComponents(path);
+                const filename = components.pop();
+                const directoryPath = components.join('/');
+
+                const directory = this.findItem(directoryPath);
+
+                if (directory && directory.type === "directory") {
+                    directory.contents[filename] = this.createFile(filename, content + '\n');
+                } else {
+                    console.log("Invalid file path");
+                }
             }
+        } catch (error) {
+            console.log("Invalid file path");
         }
     }
 
     mv(sourcePath, destinationPath) {
-        const source = this.findItem(sourcePath);
-        const destination = this.findItem(destinationPath);
+        try {
+            const source = this.findItem(sourcePath);
+            const destination = this.findItem(destinationPath);
 
-        if (source && destination && destination.type === 'directory') {
-            // Ensure source and destination are not the same
-            if (source === destination) {
-                console.log('Source and destination are the same.');
-                return;
-            }
-
-            // Ensure the source is not an ancestor of the destination
-            let ancestor = destination;
-            while (ancestor) {
-                if (ancestor === source) {
-                    console.log('Destination is a subdirectory of the source.');
+            if (source && destination && destination.type === 'directory') {
+                // Ensure source and destination are not the same
+                if (source === destination) {
+                    console.log('Source and destination are the same.');
                     return;
                 }
-                ancestor = ancestor.parent;
-            }
 
-            // Move the source to the destination
-            if (source.parent.contents[source.name]) {
-                destination.contents[source.name] = source;
-                delete source.parent.contents[source.name];
-                source.parent = destination;
+                // Ensure the source is not an ancestor of the destination
+                let ancestor = destination;
+                while (ancestor) {
+                    if (ancestor === source) {
+                        console.log('Destination is a subdirectory of the source.');
+                        return;
+                    }
+                    ancestor = ancestor.parent;
+                }
 
-                console.log(`Moved ${source.type} "${source.name}" to ${destinationPath}`);
+                // Move the source to the destination
+                if (source.parent.contents[source.name]) {
+                    destination.contents[source.name] = source;
+                    delete source.parent.contents[source.name];
+                    source.parent = destination;
+
+                    console.log(`Moved ${source.type} "${source.name}" to ${destinationPath}`);
+                } else {
+                    console.log(`Error: ${sourcePath} not found.`);
+                }
             } else {
-                console.log(`Error: ${sourcePath} not found.`);
+                console.log('Invalid source or destination path.');
             }
-        } else {
+        } catch (error) {
             console.log('Invalid source or destination path.');
         }
     }
 
 
     cp(sourcePath, destinationPath) {
-        const source = this.findItem(sourcePath);
-        const destination = this.findItem(destinationPath);
+        try {
+            const source = this.findItem(sourcePath);
+            const destination = this.findItem(destinationPath);
 
-        if (source && destination && destination.type === 'directory') {
-            const copy = deepClone(source);
-            destination.contents[source.name] = copy;
+            if (source && destination && destination.type === 'directory') {
+                const copy = deepClone(source);
+                destination.contents[source.name] = copy;
 
-            console.log(`Copied ${source.type} "${source.name}" to ${destinationPath}`);
-        } else {
+                console.log(`Copied ${source.type} "${source.name}" to ${destinationPath}`);
+            } else {
+                console.log('Invalid source or destination path');
+            }
+        } catch (error) {
             console.log('Invalid source or destination path');
         }
+
     }
 
     rm(path) {
@@ -313,23 +326,28 @@ module.exports = class FileSystem {
 }
 
 function deepClone(obj, clonedObjects = new WeakMap()) {
-    if (obj === null || typeof obj !== 'object') {
-        return obj;
-    }
-
-    if (clonedObjects.has(obj)) {
-        return clonedObjects.get(obj);
-    }
-
-    const clone = Array.isArray(obj) ? [] : {};
-
-    clonedObjects.set(obj, clone);
-
-    for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            clone[key] = deepClone(obj[key], clonedObjects);
+    try {
+        if (obj === null || typeof obj !== 'object') {
+            return obj;
         }
+
+        if (clonedObjects.has(obj)) {
+            return clonedObjects.get(obj);
+        }
+
+        const clone = Array.isArray(obj) ? [] : {};
+
+        clonedObjects.set(obj, clone);
+
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                clone[key] = deepClone(obj[key], clonedObjects);
+            }
+        }
+
+        return clone;
+    } catch (error) {
+        console.log('Unknown error occured.')
     }
 
-    return clone;
 }
